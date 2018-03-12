@@ -1,0 +1,114 @@
+;
+; DTMouseDriver.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Provider=%ManufacturerName%
+ClassGuid={4d36e96f-e325-11ce-bfc1-08002be10318}
+Class=Mouse
+DriverVer= 11/28/2017, 1.0.0.0; TODO: set DriverVer in stampinf property pages
+CatalogFile=DTMouseDriver.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+DTMouseDriver_Device_CoInstaller_CopyFiles = 11
+
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%DTMouseDriver.DeviceDesc%=DTMouseDriver_Device, Root\PNP6677; 
+
+[DTMouseDriver_Device.NT]
+;Include=msmouse.inf
+;Needs=HID_Mouse_Inst.NT
+
+AddReg      = DTMouseDriver_Device.AddReg
+CopyFiles=Drivers_Dir
+
+
+[DTMouseDriver_Device.AddReg]
+HKR,,LocationInformationOverride,,%LocationOverride%
+
+
+[Drivers_Dir]
+DTMouseDriver.sys
+
+;-------------- Service installation
+[DTMouseDriver_Device.NT.Services]
+AddService = DTMouseDriver,%SPSVCINST_ASSOCSERVICE%, DTMouseDriver_Service_Inst
+
+;Include=msmouse.inf
+;Needs=HID_Mouse_Inst.NT.Services
+
+; -------------- DTMouseDriver driver install sections
+[DTMouseDriver_Service_Inst]
+DisplayName    = %DTMouseDriver.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\DTMouseDriver.sys
+
+
+[DTMouseDriver_Device.NT.HW]
+; run the directives need by the port driver
+;Include=msmouse.inf
+;Needs=HID_Mouse_Inst.NT.HW
+
+AddReg = DTMouseDriver_Device.AddReg.NT
+
+[DTMouseDriver_Device.AddReg.NT]
+HKR,,"FlipFlopWheel",0x00010001,0
+HKR,,"ForceAbsolute",0x00010001,0
+HKR,,"HScrollPageOverride",0x00010001,0             ; default value
+HKR,,"HScrollUsageOverride",0x00010001,0            ; default value
+HKR,,"HScrollHighResolutionDisable",0x00010001,0    ; default value
+HKR,,"VScrollPageOverride",0x00010001,0             ; default value
+HKR,,"VScrollUsageOverride",0x00010001,0            ; default value
+HKR,,"VScrollHighResolutionDisable",0x00010001,0    ; default value
+HKR,,"FlipFlopHScroll",0x00010001,0                 ; default value
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+DTMouseDriver.sys  = 1,,
+;WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;
+;--- DTMouseDriver_Device Coinstaller installation ------
+;
+
+[DTMouseDriver_Device.NT.CoInstallers]
+AddReg=DTMouseDriver_Device_CoInstaller_AddReg
+CopyFiles=DTMouseDriver_Device_CoInstaller_CopyFiles
+
+[DTMouseDriver_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[DTMouseDriver_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[DTMouseDriver_Device.NT.Wdf]
+KmdfService =  DTMouseDriver, DTMouseDriver_wdfsect
+
+[DTMouseDriver_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="DingTang Tech" ;TODO: Replace with your manufacturer name
+DiskName = "DT Mouse Installation Disk"
+DTMouseDriver.DeviceDesc = "DT-Mouse"
+DTMouseDriver.SVCDESC = "DT Mouse Service"
+
+LocationOverride        = "DT Virtual Mouse"
